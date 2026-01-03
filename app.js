@@ -1,11 +1,20 @@
 // App State
 const state = {
     selectedService: null,
+    selectedAmountUsd: 0,
+    selectedAmountKes: 0,
+    exchangeRate: 129.5, // Default fallback
     selectedDate: null, // Full date string e.g., "2026-01-15"
     selectedTime: null,
     currentStep: 1, // 1: Calendar, 2: Checkout, 3: Success
     currentMonth: new Date().getMonth(), // 0-11
     currentYear: new Date().getFullYear()
+};
+
+const servicePrices = {
+    'Puppy Foundations': 199,
+    'Obedience Mastery': 249,
+    'Behavior Modification': 299
 };
 
 // Colors & Icons for high-end look
@@ -25,13 +34,27 @@ const nav = document.querySelector('.navbar');
 document.addEventListener('DOMContentLoaded', () => {
     initEventListeners();
     handleNavbarScroll();
+    fetchExchangeRate();
 
     // Set hero image
     const heroImg = document.getElementById('hero-image');
     if (heroImg) {
-        heroImg.style.backgroundImage = "url('luxury_dog_training_hero.png')";
+        heroImg.style.backgroundImage = "url('dogman_hero.png')";
     }
 });
+
+async function fetchExchangeRate() {
+    try {
+        const response = await fetch('https://open.er-api.com/v6/latest/USD');
+        const data = await response.json();
+        if (data && data.rates && data.rates.KES) {
+            state.exchangeRate = data.rates.KES;
+            console.log(`Real-time USD to KES rate: ${state.exchangeRate}`);
+        }
+    } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+    }
+}
 
 function initEventListeners() {
     // Booking Buttons
@@ -58,6 +81,9 @@ function handleNavbarScroll() {
 // Modal Management
 function openBookingModal(serviceName) {
     state.selectedService = serviceName;
+    state.selectedAmountUsd = servicePrices[serviceName] || 249;
+    state.selectedAmountKes = Math.round(state.selectedAmountUsd * state.exchangeRate);
+
     state.currentStep = 1;
     state.selectedDate = null;
     state.selectedTime = null;
@@ -154,16 +180,16 @@ function renderCheckout() {
         </div>
         <div class="checkout-details-upgrade mpesa-theme">
             <div class="detail-row">
-                <span>Service:</span>
+                <span>Service</span>
                 <span class="value">${state.selectedService}</span>
             </div>
             <div class="detail-row">
-                <span>Total Amount:</span>
-                <span class="price-value KES">KES 32,500</span>
+                <span>Total Amount</span>
+                <span class="price-value KES">KES ${state.selectedAmountKes.toLocaleString()}</span>
             </div>
         </div>
         <form class="payment-form-upgrade mpesa-form" onsubmit="handleMpesaPayment(event)">
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom: 2rem;">
                 <label>M-Pesa Mobile Number</label>
                 <div class="phone-input-container">
                     <span class="prefix">+254</span>
@@ -171,7 +197,7 @@ function renderCheckout() {
                 </div>
                 <p class="input-hint">An STK Push will be sent to this number.</p>
             </div>
-            <button type="submit" class="btn btn-mpesa btn-full">Send STK Push</button>
+            <button type="submit" class="btn btn-mpesa">Send STK Push</button>
             <p class="secure-hint">Lipa na M-Pesa Online Secure Checkout</p>
         </form>
     `;
@@ -191,16 +217,16 @@ window.handleMpesaPayment = async function (e) {
                 <div class="ring-spinner"></div>
             </div>
             <h2>Awaiting PIN Entry</h2>
-            <p>We're sending an STK Push to <strong>${state.mpesaPhone}</strong>.</p>
-            <div class="mpesa-instructions">
+            <p class="waiting-subtitle">We're sending an STK Push to <strong>${state.mpesaPhone}</strong>.</p>
+            <div class="mpesa-instructions-card">
                 <ol>
-                    <li>A popup will appear on your phone.</li>
-                    <li>Enter your <strong>M-PESA PIN</strong>.</li>
-                    <li>Click <strong>OK</strong> to authorize the payment.</li>
+                    <li>A popup will appear on your phone automatically.</li>
+                    <li>Enter your <strong>M-PESA PIN</strong> using the keypad.</li>
+                    <li>Click <strong>OK</strong> to authorize the transaction.</li>
                 </ol>
             </div>
-            <div class="waiting-timer" id="stk-status">Sending request...</div>
-            <button class="btn btn-outline btn-full" onclick="renderCheckout()">Cancel</button>
+            <div class="waiting-timer" id="stk-status">Initializing secure channel...</div>
+            <button class="btn btn-outline btn-full" style="opacity: 0.6;" onclick="renderCheckout()">Cancel Payment</button>
         </div>
     `;
 
@@ -275,40 +301,44 @@ async function startPolling(checkoutRequestID) {
 }
 
 function renderSuccess() {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
+
     modalContainer.innerHTML = `
         <div class="success-view-upgrade">
             <div class="success-ring">
                 <div class="check-icon">✓</div>
             </div>
-            <h2>Elite Training Confirmed!</h2>
-            <p>Your payment was successful. A detailed receipt has been sent to your email.</p>
+            <h2>Payment Successful!</h2>
+            <p>Your session has been confirmed and added to our schedule. We're excited to work with you!</p>
             
             <div class="receipt-card">
                 <div class="receipt-header">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg" alt="M-Pesa" height="30">
                     <span>Transaction Receipt</span>
+                    <span>${dateStr}</span>
                 </div>
-                <div class="receipt-body">
-                    <div class="receipt-row">
-                        <span>Receipt No:</span>
-                        <strong>${state.mpesaReceipt || 'QWERTY1234'}</strong>
-                    </div>
-                    <div class="receipt-row">
-                        <span>Service:</span>
-                        <strong>${state.selectedService}</strong>
-                    </div>
-                    <div class="receipt-row">
-                        <span>Amount:</span>
-                        <strong>KES 32,500</strong>
-                    </div>
-                    <div class="receipt-row">
-                        <span>Date:</span>
-                        <strong>${formatDisplayDate(state.selectedDate)}</strong>
-                    </div>
+                <div class="receipt-row">
+                    <span>Receipt No</span>
+                    <strong>${state.mpesaReceipt || 'QUERIED-STK'}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Service</span>
+                    <strong>${state.selectedService}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Date & Time</span>
+                    <strong>${formatDisplayDate(state.selectedDate)} @ ${state.selectedTime}</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Amount Paid</span>
+                    <strong class="amount-total">KES ${state.selectedAmountKes.toLocaleString()}</strong>
                 </div>
             </div>
 
-            <button class="btn btn-primary" style="margin-top: 2rem;" onclick="closeModal()">Back to Elite K9</button>
+            <button class="btn btn-primary btn-full btn-large" onclick="closeModal()">Back to Dashboard</button>
+            <p class="email-hint" style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                A copy of this receipt has been sent to your email.
+            </p>
         </div>
     `;
 }
