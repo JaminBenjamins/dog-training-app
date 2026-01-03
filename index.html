@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite K9 Training | Premium Dog Coaching & Boarding</title>
+    <meta name="description" content="Professional dog training services for a well-behaved, happy companion. Book your session today.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">ELITE<span>K9</span></div>
+            <nav>
+                <a href="#services">Services</a>
+                <a href="#about">About</a>
+                <a href="#testimonials">Testimonials</a>
+                <button class="btn btn-primary" id="book-now-nav">Book Now</button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" id="hero">
+            <div class="container hero-content">
+                <h1>Transform Your Dog's Behavior with <span class="highlight">Elite Coaching</span></h1>
+                <p>Luxury training programs tailored to your dog's unique personality and your lifestyle. Achieve the perfect bond today.</p>
+                <div class="hero-btns">
+                    <button class="btn btn-primary btn-large" id="hero-book-btn">Start Your Journey</button>
+                    <button class="btn btn-outline btn-large">View Programs</button>
+                </div>
+            </div>
+            <div class="hero-image-container">
+                <div class="image-skeleton" id="hero-image"></div>
+            </div>
+        </section>
+
+        <section class="services" id="services">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Our Specialized Programs</h2>
+                    <p>Comprehensive training solutions for every stage of your dog's life.</p>
+                </div>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <div class="service-icon">🐾</div>
+                        <h3>Puppy Foundations</h3>
+                        <p>Essential socialization and basic obedience for puppies aged 8-16 weeks.</p>
+                        <span class="price">$199 / Session</span>
+                        <button class="btn btn-secondary book-service" data-service="Puppy Foundations">Book Now</button>
+                    </div>
+                    <div class="service-card">
+                        <div class="service-icon">🐕</div>
+                        <h3>Obedience Mastery</h3>
+                        <p>Advanced off-leash control and complex command sequences for adult dogs.</p>
+                        <span class="price">$249 / Session</span>
+                        <button class="btn btn-secondary book-service" data-service="Obedience Mastery">Book Now</button>
+                    </div>
+                    <div class="service-card">
+                        <div class="service-icon">⚡</div>
+                        <h3>Behavior Modification</h3>
+                        <p>Specialized solutions for anxiety, aggression, and complex behavioral issues.</p>
+                        <span class="price">$299 / Session</span>
+                        <button class="btn btn-secondary book-service" data-service="Behavior Modification">Book Now</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="booking-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-modal">&times;</button>
+            <div class="modal-body" id="modal-step-container">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Elite K9 Training. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
