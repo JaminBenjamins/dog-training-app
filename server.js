@@ -66,12 +66,30 @@ app.post('/api/stkpush', generateToken, async (req, res) => {
 // 3. Callback Route (M-Pesa will call this)
 app.post('/api/callback', (req, res) => {
     console.log('M-Pesa Callback Received:', JSON.stringify(req.body, null, 2));
-    const result = req.body.Body.stkCallback;
-    if (result.ResultCode === 0) {
-        // Payment successful
-        sendReceiptEmail(result.CheckoutRequestID);
+
+    try {
+        const result = req.body.Body.stkCallback;
+        const checkoutRequestID = result.CheckoutRequestID;
+        const resultCode = result.ResultCode;
+        const resultDesc = result.ResultDesc;
+
+        if (resultCode === 0) {
+            // Extract Receipt Number from CallbackMetadata
+            const metadata = result.CallbackMetadata.Item;
+            const receiptItem = metadata.find(item => item.Name === 'MpesaReceiptNumber');
+            const receiptNumber = receiptItem ? receiptItem.Value : 'N/A';
+
+            console.log(`[SUCCESS] Payment for Request ${checkoutRequestID} confirmed. Receipt: ${receiptNumber}`);
+            sendReceiptEmail(checkoutRequestID, receiptNumber);
+        } else {
+            console.warn(`[FAILURE] Payment for Request ${checkoutRequestID} failed. Reason: ${resultDesc} (Code: ${resultCode})`);
+        }
+    } catch (err) {
+        console.error('Error processing M-Pesa callback:', err.message);
     }
-    res.status(200).send('OK');
+
+    // Always respond with 200 OK so Safaricom doesn't retry
+    res.status(200).json({ ResultCode: 0, ResultDesc: "Success" });
 });
 
 // 4. Status Query Route (Polling)
@@ -103,11 +121,11 @@ app.post('/api/stkquery', generateToken, async (req, res) => {
 });
 
 // 5. Mock Email Function
-function sendReceiptEmail(checkoutID) {
+function sendReceiptEmail(checkoutID, receiptNo) {
     console.log(`--- [EMAIL SIMULATION] ---`);
     console.log(`To: user@example.com`);
     console.log(`Subject: Your Elite K9 Training Receipt`);
-    console.log(`Body: Thank you for your payment! Transaction ID: ${checkoutID}`);
+    console.log(`Body: Thank you for your payment! Transaction ID: ${checkoutID} | Receipt: ${receiptNo}`);
     console.log(`--------------------------`);
 }
 
