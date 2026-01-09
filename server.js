@@ -11,13 +11,6 @@ const generateToken = async (req, res, next) => {
     const key = process.env.MPESA_CONSUMER_KEY;
     const secret = process.env.MPESA_CONSUMER_SECRET;
 
-    // DEV MOCK: Allow "dummy_key" to pass for UI testing purposes
-    if (key === 'dummy_key' || key === 'placeholder') {
-        console.log('--- [DEV MOCK] Bypassing real M-Pesa auth for testing ---');
-        req.token = 'MOCK_TOKEN_123456';
-        return next();
-    }
-
     const auth = Buffer.from(`${key}:${secret}`).toString('base64');
 
     try {
@@ -37,19 +30,6 @@ const generateToken = async (req, res, next) => {
 app.post('/api/stkpush', generateToken, async (req, res) => {
     const phone = req.body.phone;
     const amount = req.body.amount || 1;
-
-    // DEV MOCK: If using mock token, return success immediately
-    if (req.token === 'MOCK_TOKEN_123456') {
-        console.log(`--- [DEV MOCK] Simulating STK Push to ${phone} for KES ${amount} ---`);
-        return res.status(200).json({
-            MerchantRequestID: 'MOCK_123',
-            CheckoutRequestID: 'MOCK_REQ_456',
-            ResponseDescription: 'Success. Request accepted for processing',
-            ResponseCode: '0',
-            CustomerMessage: 'Success',
-            mock: true
-        });
-    }
 
     const shortcode = process.env.MPESA_SHORTCODE;
     const passkey = process.env.MPESA_PASSKEY;
