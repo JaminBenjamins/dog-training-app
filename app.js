@@ -17,21 +17,17 @@ const servicePrices = {
     'Behavior Modification': 299
 };
 
-// Colors & Icons for high-end look
-const COLORS = {
-    primary: '#F59E0B',
-    secondary: '#0F172A',
-    textMuted: '#94A3B8'
-};
 
-// DOM Elements
-const modal = document.getElementById('booking-modal');
-const modalContainer = document.getElementById('modal-step-container');
-const closeModalBtn = document.getElementById('close-modal');
-const nav = document.querySelector('.navbar');
+
+// DOM Elements (initialized on load)
+let modal, modalContainer, nav;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    modal = document.getElementById('booking-modal');
+    modalContainer = document.getElementById('modal-step-container');
+    nav = document.querySelector('.navbar');
+
     initEventListeners();
     handleNavbarScroll();
     fetchExchangeRate();
@@ -39,8 +35,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set hero image
     const heroImg = document.getElementById('hero-image');
     if (heroImg) {
-        heroImg.style.backgroundImage = "url('dogman_hero.png')";
+        const img = new Image();
+        img.src = 'dogman_hero.png';
+
+        img.onload = () => {
+            heroImg.style.backgroundImage = `url('${img.src}')`;
+            heroImg.classList.remove('image-skeleton');
+        };
+
+        img.onerror = () => {
+            console.warn('Primary hero image failed, trying fallback...');
+            const fallback = new Image();
+            fallback.src = 'luxury_dog_training_hero.png';
+            fallback.onload = () => {
+                heroImg.style.backgroundImage = `url('${fallback.src}')`;
+                heroImg.classList.remove('image-skeleton');
+            };
+            fallback.onerror = () => {
+                heroImg.classList.remove('image-skeleton');
+                heroImg.style.backgroundColor = '#1e293b'; // Fallback solid color
+            };
+        };
     }
+
+    initTestimonialAutoScroll();
 });
 
 async function fetchExchangeRate() {
@@ -65,10 +83,117 @@ function initEventListeners() {
         });
     });
 
-    closeModalBtn.addEventListener('click', closeModal);
+    // View Programs Scroll
+    const viewProgramsBtn = document.getElementById('view-programs-btn');
+    if (viewProgramsBtn) {
+        viewProgramsBtn.addEventListener('click', () => {
+            document.getElementById('services').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    // Modal Close - X Button
+    const closeBtn = document.getElementById('close-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+
+    // Modal Close - Click Outside
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+
+    // Modal Close - Escape Key
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            closeLegal();
+        }
+    });
+
+    // Legal Modal Close
+    const closeLegalBtn = document.getElementById('close-legal');
+    if (closeLegalBtn) {
+        closeLegalBtn.addEventListener('click', closeLegal);
+    }
+    const legalModal = document.getElementById('legal-modal');
+    if (legalModal) {
+        legalModal.addEventListener('click', (e) => {
+            if (e.target === legalModal) closeLegal();
+        });
+    }
 
     window.addEventListener('scroll', handleNavbarScroll);
 }
+
+function closeLegal() {
+    const legalModal = document.getElementById('legal-modal');
+    if (legalModal) legalModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+window.openLegal = function (type) {
+    const body = document.getElementById('legal-body');
+    const modal = document.getElementById('legal-modal');
+
+    if (type === 'tos') {
+        body.innerHTML = `
+            <div class="legal-text">
+                <h2>Terms of Service</h2>
+                <p>Effective Date: January 1, 2026</p>
+                
+                <h3>1. Booking & Scheduling</h3>
+                <p>All training sessions must be booked 48 hours in advance. Confirmation is subject to availability and payment of the designated fee via M-Pesa.</p>
+                
+                <h3>2. Cancellation & Rescheduling</h3>
+                <p>We require at least 24 hours' notice for rescheduling or cancellation. Fees for sessions cancelled with less than 24 hours' notice are non-refundable.</p>
+                
+                <h3>3. Dog Health & Safety</h3>
+                <p>Clients must provide proof of up-to-date vaccinations (Parvovirus, Distemper, Rabies) for all dogs attending training. We reserve the right to refuse service to dogs showing signs of contagious illness.</p>
+                
+                <h3>4. Liability Waiver</h3>
+                <p>Training involves inherent risks. While we take every precaution, DOGMAN UNLEASHED 254 is not liable for any injury, loss, or damage to property or persons caused by a dog during or after training sessions.</p>
+                
+                <h3>5. Payments</h3>
+                <p>All payments are processed securely through the Lipa na M-Pesa framework. Services will only be rendered after payment confirmation.</p>
+            </div>
+        `;
+    } else {
+        body.innerHTML = `
+            <div class="legal-text">
+                <h2>Privacy Policy</h2>
+                <p>Compliance: Kenya Data Protection Act, 2019</p>
+
+                <h3>1. Information Collection</h3>
+                <p>We collect minimal personal data required for service delivery, including your name, email address, and M-Pesa mobile number.</p>
+
+                <h3>2. Use of Information</h3>
+                <p>Your data is used exclusively for:
+                    <ul>
+                        <li>Processing payments through Safaricom API.</li>
+                        <li>Sending automated appointment receipts.</li>
+                        <li>Communication regarding training schedules.</li>
+                    </ul>
+                </p>
+
+                <h3>3. Data Sharing</h3>
+                <p>We do not sell your data. We only share your phone number with Safaricom PLC to initiate the Lipa na M-Pesa STK Push. Your email is processed via our secure scheduling engine.</p>
+
+                <h3>4. Data Security</h3>
+                <p>All digital interactions are encrypted. We do not store your M-Pesa PIN or any banking credentials on our servers.</p>
+
+                <h3>5. Your Rights</h3>
+                <p>Under the Data Protection Act, 2019, you have the right to access, rectify, or request the deletion of your personal information at any time.</p>
+            </div>
+        `;
+    }
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+};
 
 function handleNavbarScroll() {
     if (window.scrollY > 50) {
@@ -226,9 +351,19 @@ window.handleMpesaPayment = async function (e) {
                 </ol>
             </div>
             <div class="waiting-timer" id="stk-status">Initializing secure channel...</div>
-            <button class="btn btn-outline btn-full" style="opacity: 0.6;" onclick="renderCheckout()">Cancel Payment</button>
+            <div class="mpesa-actions" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <button class="btn btn-mpesa" onclick="manualStatusCheck()" id="manual-check-btn" style="display: none;">Check Payment Status</button>
+                <button class="btn btn-outline btn-full" style="opacity: 0.6;" onclick="renderCheckout()">Cancel Payment</button>
+            </div>
         </div>
     `;
+
+    // Make manual check button visible after 15 seconds
+    setTimeout(() => {
+        const btn = document.getElementById('manual-check-btn');
+        if (btn) btn.style.display = 'block';
+    }, 15000);
+
 
     try {
         // 2. Call backend STK Push
@@ -241,7 +376,15 @@ window.handleMpesaPayment = async function (e) {
             })
         });
 
-        const data = await response.json();
+        const contentType = response.headers.get("content-type");
+        let data;
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            data = await response.json();
+        } else {
+            const text = await response.text();
+            throw new Error(text || 'Server returned an invalid response');
+        }
+
         console.log('STK Push Response:', data);
 
         if (response.ok && data.ResponseCode === '0') {
@@ -249,56 +392,109 @@ window.handleMpesaPayment = async function (e) {
             state.checkoutRequestID = data.CheckoutRequestID;
             startPolling(data.CheckoutRequestID);
         } else {
-            alert('M-Pesa Error: ' + (data.CustomerMessage || data.error || 'Failed to trigger STK Push'));
-            renderCheckout();
+            const errorMsg = data.CustomerMessage || data.error || data.errorMessage || 'Failed to trigger STK Push';
+            document.getElementById('stk-status').innerHTML = `<span style="color: #ef4444;">Error: ${errorMsg}</span>`;
+            console.error('M-Pesa error:', data);
+            // Don't call renderCheckout immediately so user can see the error
         }
     } catch (error) {
         console.error('Payment error:', error);
-        alert('An network error occurred. Please check if the server is running.');
-        renderCheckout();
+        document.getElementById('stk-status').innerHTML = `<span style="color: #ef4444;">Error: ${error.message}</span>`;
+        // Don't call renderCheckout immediately
     }
 };
 
 async function startPolling(checkoutRequestID) {
     const statusEl = document.getElementById('stk-status');
     let attempts = 0;
-    const maxAttempts = 20; // ~60 seconds
+    const maxAttempts = 30; // ~90 seconds
 
     const poll = setInterval(async () => {
         attempts++;
         statusEl.innerText = `Waiting for confirmation... (${attempts})`;
 
-        try {
-            const response = await fetch('/api/stkquery', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ CheckoutRequestID: checkoutRequestID })
-            });
-
-            const data = await response.json();
-            console.log('Poll Result:', data);
-
-            if (data.ResultCode === '0') {
-                clearInterval(poll);
-                state.mpesaReceipt = data.MpesaReceiptNumber || 'N/A';
-                state.currentStep = 3;
-                renderStep();
-            } else if (data.errorCode && data.errorCode !== '500.003.1001') {
-                clearInterval(poll);
-                alert('Payment Failed: ' + (data.errorMessage || 'Transaction cancelled or failed'));
-                renderCheckout();
-            }
-        } catch (err) {
-            console.error('Polling error:', err);
+        const isComplete = await checkServerStatus(checkoutRequestID);
+        if (isComplete) {
+            clearInterval(poll);
         }
 
         if (attempts >= maxAttempts) {
             clearInterval(poll);
-            alert('Payment Timeout: We did not receive confirmation in time.');
-            renderCheckout();
+            alert('Payment Timeout: We did not receive confirmation from Safaricom in time. If you paid, please click "Check Payment Status".');
         }
     }, 3000);
 }
+
+async function checkServerStatus(checkoutRequestID) {
+    const statusEl = document.getElementById('stk-status');
+    try {
+        const response = await fetch(`/api/payment-status/${checkoutRequestID}`);
+        if (!response.ok) return false;
+
+        const data = await response.json();
+        console.log('Internal Status Check:', data);
+
+        if (data.status === 'SUCCESS') {
+            state.mpesaReceipt = data.details.receiptNumber || 'N/A';
+            state.currentStep = 3;
+            renderStep();
+            return true;
+        } else if (data.status === 'FAILED') {
+            alert('Payment Failed: ' + (data.details.reason || 'Transaction failed'));
+            renderCheckout();
+            return true;
+        }
+    } catch (err) {
+        console.error('Polling error:', err);
+    }
+    return false;
+}
+
+window.manualStatusCheck = async function () {
+    const checkoutID = state.checkoutRequestID;
+    if (!checkoutID) {
+        alert('Transaction ID not found. Please wait until the request is initialized.');
+        return;
+    }
+    const btn = document.getElementById('manual-check-btn');
+    const originalText = btn.innerText;
+    btn.innerText = 'Checking...';
+    btn.disabled = true;
+
+    const isComplete = await checkServerStatus(checkoutID);
+
+    if (!isComplete) {
+        // If not complete, also try a hard query to Safaricom via backend
+        try {
+            const response = await fetch('/api/stkquery', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ CheckoutRequestID: checkoutID })
+            });
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const data = await response.json();
+                if (data.ResultCode === '0') {
+                    state.mpesaReceipt = data.MpesaReceiptNumber || 'QUERIED-STK';
+                    state.currentStep = 3;
+                    renderStep();
+                } else {
+                    alert('Status: ' + (data.CustomerMessage || 'Still waiting for M-Pesa. Please ensure you have entered your PIN.'));
+                }
+            } else {
+                const text = await response.text();
+                alert('Server Error: ' + text.substring(0, 100));
+            }
+        } catch (e) {
+            console.error('Hard query error:', e);
+            alert('Connection Error: Could not reach the server.');
+        }
+    }
+
+    btn.innerText = originalText;
+    btn.disabled = false;
+};
 
 function renderSuccess() {
     const now = new Date();
@@ -374,4 +570,48 @@ window.goToStep = function (step) {
 function formatDisplayDate(dateStr) {
     const options = { weekday: 'short', month: 'short', day: 'numeric' };
     return new Date(dateStr).toLocaleDateString('en-US', options);
+}
+
+/**
+ * Premium Testimonial Auto-Scroll
+ * Automatically scrolls testimonials and pauses on hover/interaction.
+ */
+function initTestimonialAutoScroll() {
+    const container = document.querySelector('.testimonials-container');
+    if (!container) return;
+
+    // Clone the content for a seamless loop
+    const originalContent = container.innerHTML;
+    container.innerHTML = originalContent + originalContent;
+
+    let isPaused = false;
+    let scrollInterval;
+    const scrollSpeed = 0.6; // Smoother speed
+    const intervalTime = 16; // ~60fps
+
+    const startScroll = () => {
+        scrollInterval = setInterval(() => {
+            if (!isPaused) {
+                container.scrollLeft += scrollSpeed;
+
+                // Seamless loop jump
+                if (container.scrollLeft >= container.scrollWidth / 2) {
+                    container.scrollLeft = 0;
+                }
+            }
+        }, intervalTime);
+    };
+
+    const stopScroll = () => {
+        clearInterval(scrollInterval);
+    };
+
+    // Pause events
+    container.addEventListener('mouseenter', () => isPaused = true);
+    container.addEventListener('mouseleave', () => isPaused = false);
+    container.addEventListener('touchstart', () => isPaused = true);
+    container.addEventListener('touchend', () => isPaused = false);
+
+    // Initial start
+    startScroll();
 }
