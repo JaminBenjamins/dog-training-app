@@ -164,10 +164,35 @@
                         </div>
                     </div>
                 </div>
-                <div class="testimonial-hint">Swipe to see more results →</div>
             </div>
         </section>
     </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3>DOGMAN UNLEASHED 254</h3>
+                    <p>Elevating the bond between K9 and Handler since 2020.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="javascript:void(0)" onclick="openLegal('tos')">Terms of Service</a>
+                    <a href="javascript:void(0)" onclick="openLegal('privacy')">Privacy Policy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 DOGMAN UNLEASHED 254. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Legal Modals -->
+    <div id="legal-modal" class="modal-overlay">
+        <div class="modal-content legal-content">
+            <button class="modal-close" id="close-legal">✕</button>
+            <div id="legal-body"></div>
+        </div>
+    </div>
 
     <!-- Booking Modal -->
     <div class="modal-overlay" id="booking-modal">
@@ -179,11 +204,7 @@
         </div>
     </div>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 DOGMAN UNLEASHED 254. All rights reserved.</p>
-        </div>
-    </footer>
+
 
     <script src="app.js"></script>
 </body>
