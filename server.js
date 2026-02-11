@@ -3,8 +3,54 @@ const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
+
+// Enable CORS for GitHub Pages frontend
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*'); // In production, replace '*' with your GitHub Pages URL
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
+
 app.use(express.json());
 app.use(express.static('.'));
+
+// In-memory store for payment statuses (CheckoutRequestID -> Status)
+const pendingPayments = new Map();
+
+// Whitelisted Safaricom IPs
+const SAFARICOM_IPS = [
+    '196.201.214.200', '196.201.214.206', '196.201.213.114',
+    '196.201.214.207', '196.201.214.208', '196.201.213.44',
+    '196.201.212.127', '196.201.212.138', '196.201.212.129',
+    '196.201.212.136', '196.201.212.74', '196.201.212.69'
+];
+
+/**
+ * Middleware to verify that requests come from Safaricom's trusted IPs
+ */
+const whitelistIPs = (req, res, next) => {
+    // If using ngrok/proxy, the real IP is in 'x-forwarded-for'
+    const xForwardedFor = req.headers['x-forwarded-for'];
+    const clientIP = xForwardedFor ? xForwardedFor.split(',')[0].trim() : req.socket.remoteAddress;
+
+    // Remove IPv6 prefix if present (e.g., ::ffff:192.168.1.1)
+    const cleanIP = clientIP.replace(/^.*:/, '');
+
+    if (SAFARICOM_IPS.includes(cleanIP)) {
+        next();
+    } else {
+        console.warn(`[SECURITY] Potential spoof attempt blocked from IP: ${cleanIP}`);
+        // During development with ngrok, you might want to log this but allow it
+        // For production, strictly 403.
+        res.status(403).json({ error: 'IP not whitelisted' });
+    }
+};
 
 // 1. Middleware to generate M-Pesa Access Token
 const generateToken = async (req, res, next) => {
@@ -56,6 +102,14 @@ app.post('/api/stkpush', generateToken, async (req, res) => {
             stkPushData,
             { headers: { Authorization: `Bearer ${req.token}` } }
         );
+
+        // Register the checkout request in our store
+        pendingPayments.set(response.data.CheckoutRequestID, {
+            status: 'PENDING',
+            details: null,
+            timestamp: Date.now()
+        });
+
         res.status(200).json(response.data);
     } catch (error) {
         console.error('STK Push Error:', error.response ? error.response.data : error.message);
@@ -64,7 +118,7 @@ app.post('/api/stkpush', generateToken, async (req, res) => {
 });
 
 // 3. Callback Route (M-Pesa will call this)
-app.post('/api/callback', (req, res) => {
+app.post('/api/callback', whitelistIPs, (req, res) => {
     console.log('M-Pesa Callback Received:', JSON.stringify(req.body, null, 2));
 
     try {
@@ -80,9 +134,24 @@ app.post('/api/callback', (req, res) => {
             const receiptNumber = receiptItem ? receiptItem.Value : 'N/A';
 
             console.log(`[SUCCESS] Payment for Request ${checkoutRequestID} confirmed. Receipt: ${receiptNumber}`);
+
+            // Update our store
+            pendingPayments.set(checkoutRequestID, {
+                status: 'SUCCESS',
+                details: { receiptNumber },
+                timestamp: Date.now()
+            });
+
             sendReceiptEmail(checkoutRequestID, receiptNumber);
         } else {
             console.warn(`[FAILURE] Payment for Request ${checkoutRequestID} failed. Reason: ${resultDesc} (Code: ${resultCode})`);
+
+            // Update our store with failure
+            pendingPayments.set(checkoutRequestID, {
+                status: 'FAILED',
+                details: { reason: resultDesc, code: resultCode },
+                timestamp: Date.now()
+            });
         }
     } catch (err) {
         console.error('Error processing M-Pesa callback:', err.message);
@@ -90,6 +159,21 @@ app.post('/api/callback', (req, res) => {
 
     // Always respond with 200 OK so Safaricom doesn't retry
     res.status(200).json({ ResultCode: 0, ResultDesc: "Success" });
+});
+
+/**
+ * 4. Internal Status Check Route
+ * The frontend calls this to check if a callback has been received.
+ */
+app.get('/api/payment-status/:checkoutID', (req, res) => {
+    const checkoutID = req.params.checkoutID;
+    const payment = pendingPayments.get(checkoutID);
+
+    if (!payment) {
+        return res.status(404).json({ error: 'Transaction not found' });
+    }
+
+    res.json(payment);
 });
 
 // 4. Status Query Route (Polling)

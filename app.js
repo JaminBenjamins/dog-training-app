@@ -367,7 +367,7 @@ window.handleMpesaPayment = async function (e) {
 
     try {
         // 2. Call backend STK Push
-        const response = await fetch('/api/stkpush', {
+        const response = await fetch(window.appConfig.getApiUrl('/api/stkpush'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -428,7 +428,7 @@ async function startPolling(checkoutRequestID) {
 async function checkServerStatus(checkoutRequestID) {
     const statusEl = document.getElementById('stk-status');
     try {
-        const response = await fetch(`/api/payment-status/${checkoutRequestID}`);
+        const response = await fetch(window.appConfig.getApiUrl(`/api/payment-status/${checkoutRequestID}`));
         if (!response.ok) return false;
 
         const data = await response.json();
@@ -466,7 +466,7 @@ window.manualStatusCheck = async function () {
     if (!isComplete) {
         // If not complete, also try a hard query to Safaricom via backend
         try {
-            const response = await fetch('/api/stkquery', {
+            const response = await fetch(window.appConfig.getApiUrl('/api/stkquery'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ CheckoutRequestID: checkoutID })
