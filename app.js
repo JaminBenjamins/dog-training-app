@@ -272,7 +272,7 @@ function renderCalendar() {
             </div>
         </div>
         
-        <div class="time-selector-upgrade">
+        <div class="time-selector-upgrade" id="time-selector">
             ${state.selectedDate ? `
                 <h4>Available Times for ${formatDisplayDate(state.selectedDate)}</h4>
                 <div class="time-grid-upgrade">
@@ -372,7 +372,7 @@ window.handleMpesaPayment = async function (e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 phone: fullPhone,
-                amount: 1 // Sandbox testing amount
+                amount: state.selectedAmountKes
             })
         });
 
@@ -554,7 +554,17 @@ window.changeMonth = function (offset) {
 
 window.selectDate = function (date) {
     state.selectedDate = date;
+    state.selectedTime = null;
     renderCalendar();
+
+    window.setTimeout(() => {
+        const timeSelector = document.getElementById('time-selector');
+        if (timeSelector) {
+            timeSelector.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const firstTime = timeSelector.querySelector('.time-btn-upgrade');
+            if (firstTime) firstTime.focus({ preventScroll: true });
+        }
+    }, 50);
 };
 
 window.selectTime = function (time) {

@@ -4,7 +4,11 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "tunnel": "node scripts/start-localtunnel.js",
+    "tunnel:cli": "localtunnel --port 3000",
+    "tunnel:cloudflare": "tools\\cloudflared.exe tunnel --url http://localhost:3000"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +18,8 @@
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "localtunnel": "^2.0.2"
   }
 }

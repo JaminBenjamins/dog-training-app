@@ -270,15 +270,15 @@ nav a:hover {
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid var(--glass-border);
-    padding: 2.5rem 2rem;
+    padding: 2rem;
     border-radius: 24px;
-    width: 90%;
-    max-width: 600px;
+    width: min(94vw, 680px);
+    max-width: 680px;
     position: relative;
     box-shadow: 0 25px 70px -12px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
-    max-height: 90vh;
+    max-height: 92vh;
     /* Keep modal within viewport */
 }
 
@@ -287,6 +287,7 @@ nav a:hover {
     overflow-x: hidden;
     padding-right: 5px;
     /* Space for scrollbar */
+    scroll-behavior: smooth;
 }
 
 /* Custom scrollbar for webkit */
@@ -329,12 +330,14 @@ nav a:hover {
 
 @media (max-width: 600px) {
     .modal-content {
-        padding: 1.5rem 1rem;
+        padding: 1.25rem 0.9rem;
+        width: min(96vw, 520px);
+        max-height: 94vh;
     }
 
     .calendar-upgrade {
-        padding: 0.5rem;
-        margin-bottom: 1rem;
+        padding: 0.75rem;
+        margin-bottom: 0.85rem;
     }
 
     .calendar-grid {
@@ -347,6 +350,7 @@ nav a:hover {
     }
 
     .time-grid-upgrade {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.5rem;
     }
 
@@ -367,7 +371,7 @@ nav a:hover {
 
 .step-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
 }
 
 .step-header h2 {
@@ -383,7 +387,7 @@ nav a:hover {
 
 .step-header p {
     color: var(--text-muted);
-    font-size: 1rem;
+    font-size: 0.95rem;
     max-width: 320px;
     margin: 0 auto;
 }
@@ -392,8 +396,8 @@ nav a:hover {
 .calendar-upgrade {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 16px;
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -401,7 +405,7 @@ nav a:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.9rem;
 }
 
 .calendar-header h3 {
@@ -431,7 +435,7 @@ nav a:hover {
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
+    gap: 3px;
 }
 
 .weekday {
@@ -439,11 +443,12 @@ nav a:hover {
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-muted);
-    padding-bottom: 8px;
+    padding-bottom: 6px;
 }
 
 .day {
     aspect-ratio: 1;
+    min-height: 34px;
     background: transparent;
     border: none;
     color: var(--text-light);
@@ -473,7 +478,8 @@ nav a:hover {
 
 /* Time Selector Upgrade */
 .time-selector-upgrade {
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
+    scroll-margin: 1rem;
 }
 
 .time-selector-upgrade h4 {
@@ -481,24 +487,26 @@ nav a:hover {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-muted);
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .time-grid-upgrade {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem;
 }
 
 .time-btn-upgrade {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: var(--text-light);
-    padding: 0.75rem;
+    min-height: 44px;
+    padding: 0.65rem 0.5rem;
     border-radius: 10px;
     cursor: pointer;
     font-size: 0.9rem;
     transition: var(--transition);
+    white-space: nowrap;
 }
 
 .time-btn-upgrade:hover:not(.selected) {
