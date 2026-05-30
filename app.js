@@ -570,6 +570,20 @@ window.selectDate = function (date) {
 window.selectTime = function (time) {
     state.selectedTime = time;
     renderCalendar();
+
+    window.setTimeout(() => {
+        const nextButton = document.getElementById('next-step');
+        if (nextButton) {
+            const modalBody = document.getElementById('modal-step-container');
+            if (modalBody) {
+                modalBody.scrollTo({
+                    top: modalBody.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+            nextButton.focus({ preventScroll: false });
+        }
+    }, 50);
 };
 
 window.goToStep = function (step) {
